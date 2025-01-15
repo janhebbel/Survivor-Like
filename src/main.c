@@ -225,6 +225,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
 
     // Window and OpenGL Context creation and set up
     HWND window;
+    HDC dc;
     {
         DWORD window_style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN |
             WS_CLIPSIBLINGS;
@@ -239,7 +240,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
                                 CW_USEDEFAULT, window_rect.right - window_rect.left, window_rect.bottom -
                                 window_rect.top, NULL, NULL, instance, NULL);
 
-        HDC dc = GetDC(window);
+        dc = GetDC(window);
 
         PIXELFORMATDESCRIPTOR pfd;
         SetPixelFormat(dc, pixel_format, &pfd);
@@ -330,6 +331,15 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
             }
             TranslateMessage(&message);
             DispatchMessage(&message);
+        }
+
+        // Handle Input.
+
+        // Render
+        {
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            SwapBuffers(dc);
         }
 
         // Create/Recreate swap chain on start-up/resize.

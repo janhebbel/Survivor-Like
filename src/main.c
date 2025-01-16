@@ -11,6 +11,8 @@
 
 #include "config.c"
 #include "basic.c"
+#include "os_basic.c"
+#include "cglm.c"
 
 #define DEFAULT_WIDTH 1280
 #define DEFAULT_HEIGHT 720
@@ -255,7 +257,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
                 0, 0, // reserved for potential core profile
                 0,
             };
-            if (is_enabled(DEBUG)) {
+            if (IS_ENABLED(DEBUG)) {
                 attrib_list[attrib_list_insert_index++] = WGL_CONTEXT_FLAGS_ARB;
                 attrib_list[attrib_list_insert_index++] = WGL_CONTEXT_DEBUG_BIT_ARB;
             }
@@ -277,10 +279,10 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
 
         int context_flags;
         glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
-        if (is_enabled(DEBUG) && !(context_flags & GL_CONTEXT_FLAG_DEBUG_BIT)) {
+        if (IS_ENABLED(DEBUG) && !(context_flags & GL_CONTEXT_FLAG_DEBUG_BIT)) {
             MessageBox(NULL, L"Debug build is specified but OpenGL context does not have the debug flag set.",
                        L"Warning", MB_ICONEXCLAMATION);
-        } else if (!is_enabled(DEBUG) && context_flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        } else if (!IS_ENABLED(DEBUG) && context_flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
             MessageBox(NULL, L"Non-debug build is specified but OpenGL context has the debug flag set.", L"Warning",
                        MB_ICONEXCLAMATION);
         }
@@ -305,6 +307,17 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
         // Load gl functions here.
         // ...
     }
+
+    // Allocating scratch memory. TODO: turn into an arena structure
+    int scratch_size = MEGABYTES(1);
+    byte *scratch = VirtualAlloc(NULL, scratch_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+    // TODO: OpenGL Debugging.
+    // OpenGL shader setup.
+    int file_size;
+    read_file(L"..\\src\\default_vertex.glsl", scratch, scratch_size, &file_size);
+    // GLuint vertex_shader;
+    // glShaderSource(vertex_shader, 1, &scratch, file_size);
 
     ShowWindow(window, SW_SHOWNORMAL);
 
@@ -337,7 +350,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
 
         // Render
         {
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClearColor(0.09f, 0.08f, 0.15f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             SwapBuffers(dc);
         }

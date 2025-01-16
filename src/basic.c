@@ -1,18 +1,29 @@
 #include <stdbool.h>
+#include <stdint.h>
 
 #define array_len(x) (sizeof(x) / sizeof(*x))
 
-#define minimum(x, y) (((x) < (y)) ? (x) : (y))
-#define maximum(x, y) (((x) > (y)) ? (x) : (y))
-#define sign(x)       ((x > 0) - (x < 0))
-#define abs(x)        ((x < 0) ? -(x) : (x))
-#define clamp(x, min, max) (maximum(minimum(x, max), min))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define SIGN(x)       ((x > 0) - (x < 0))
+#define ABS(x)        ((x < 0) ? -(x) : (x))
+#define CLAMP(x, min, max) (MAX(MIN(x, max), min))
 
-#define kilobytes(x) ((x) << 10)
-#define megabytes(x) ((x) << 20)
-#define gigabytes(x) ((x) << 30)
+#define KILOBYTES(x) ((x) << 10)
+#define MEGABYTES(x) ((x) << 20)
+#define GIGABYTES(x) ((x) << 30)
 
-#define is_enabled(x) ((x) != 0)
+#define IS_ENABLED(x) ((x) != 0)
+
+typedef int8_t s8;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+typedef u8 byte;
 
 int is_end_of_line(char c) {
     return (c == '\n') || (c == '\r');

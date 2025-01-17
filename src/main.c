@@ -24,6 +24,11 @@ PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 
 // OpenGL Functions
 PFNGLGETSTRINGIPROC glGetStringi;
+PFNGLCREATESHADERPROC glCreateShader;
+PFNGLSHADERSOURCEPROC glShaderSource;
+PFNGLCOMPILESHADERPROC glCompileShader;
+PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
+PFNGLDEBUGMESSAGEINSERTPROC glDebugMessageInsert;
 
 bool global_window_active = false;
 
@@ -89,6 +94,12 @@ LRESULT WINAPI window_callback(HWND window, UINT message, WPARAM wparam, LPARAM 
     }
 
     return result;
+}
+
+void APIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar*
+                                  message, const void* userParam) {
+    OutputDebugStringA(message);
+    assert(severity == GL_DEBUG_SEVERITY_LOW || severity == GL_DEBUG_SEVERITY_NOTIFICATION);
 }
 
 int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int show_cmd) {
@@ -305,19 +316,38 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
         }
 
         // Load gl functions here.
-        // ...
+        glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
+        glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
+        glCompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
+        glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)wglGetProcAddress("glDebugMessageCallback");
+        glDebugMessageInsert = (PFNGLDEBUGMESSAGEINSERTPROC)wglGetProcAddress("glDebugMessageInsert");
     }
 
     // Allocating scratch memory. TODO: turn into an arena structure
     int scratch_size = MEGABYTES(1);
     byte *scratch = VirtualAlloc(NULL, scratch_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
-    // TODO: OpenGL Debugging.
+    // OpenGL debugging.
+    if (IS_ENABLED(DEBUG)) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(gl_message_callback, NULL);
+        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1,
+                             "OpenGL Debug Message Callback is enabled.\n");
+    }
+
     // OpenGL shader setup.
     int file_size;
+
     read_file(L"..\\src\\default_vertex.glsl", scratch, scratch_size, &file_size);
-    // GLuint vertex_shader;
-    // glShaderSource(vertex_shader, 1, &scratch, file_size);
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, (char **)&scratch, &file_size);
+    glCompileShader(vertex_shader);
+
+    read_file(L"..\\src\\default_fragment.glsl", scratch, scratch_size, &file_size);
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, (char **)&scratch, &file_size);
+    glCompileShader(fragment_shader);
 
     ShowWindow(window, SW_SHOWNORMAL);
 

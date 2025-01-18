@@ -2,7 +2,7 @@
 
 in vec2 uv;
 
-//layout(location = 1) uniform sampler2D u_texture;
+// layout(location = 1) uniform sampler2D u_texture;
 
 layout(location = 0) out vec4 frag_color;
 

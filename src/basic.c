@@ -1,29 +1,47 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define array_len(x) (sizeof(x) / sizeof(*x))
+#define ArrayLen(x) (sizeof(x) / sizeof(*x))
 
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define SIGN(x)       ((x > 0) - (x < 0))
-#define ABS(x)        ((x < 0) ? -(x) : (x))
-#define CLAMP(x, min, max) (MAX(MIN(x, max), min))
+#define Min(x, y) (((x) < (y)) ? (x) : (y))
+#define Max(x, y) (((x) > (y)) ? (x) : (y))
+#define Sign(x)   ((x > 0) - (x < 0))
+#define Abs(x)    ((x < 0) ? -(x) : (x))
+#define Clamp(x, min, max) (Max(Min(x, max), min))
 
-#define KILOBYTES(x) ((x) << 10)
-#define MEGABYTES(x) ((x) << 20)
-#define GIGABYTES(x) ((x) << 30)
+#define Kilobytes(x) ((x) << 10)
+#define Megabytes(x) ((x) << 20)
+#define Gigabytes(x) ((x) << 30)
 
-#define IS_ENABLED(x) ((x) != 0)
+#define IsEnabled(x) ((x) != 0)
 
-typedef int8_t s8;
-typedef int16_t s16;
-typedef int32_t s32;
-typedef int64_t s64;
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef u8 byte;
+typedef int8_t   S8;
+typedef int16_t  S16;
+typedef int32_t  S32;
+typedef int64_t  S64;
+typedef uint8_t  U8;
+typedef uint16_t U16;
+typedef uint32_t U32;
+typedef uint64_t U64;
+typedef U8 Byte;
+
+#define  S8_MIN  (S8)0x80
+#define S16_MIN (S16)0x8000
+#define S32_MIN (S32)0x80000000
+#define S64_MIN (S64)0x8000000000000000LL
+
+#define  S8_MAX  (S8)0x7f
+#define S16_MAX (S16)0x7fff
+#define S32_MAX (S32)0x7fffffff
+#define S64_MAX (S64)0x7fffffffffffffffLL
+
+#define  U8_MAX  (U8)0xff
+#define U16_MAX (U16)0xffff
+#define U32_MAX (U32)0xffffffff
+#define U64_MAX (U64)0xffffffffffffffffULL
+
+#define MemorySet(ptr, value, len) memset(ptr, value, len)
+#define MemoryZero(ptr, len) MemorySet(ptr, 0, len)
 
 int is_end_of_line(char c) {
     return (c == '\n') || (c == '\r');
@@ -100,4 +118,30 @@ int round_float(float val) {
     int   sign = (val > 0) - (val < 0);
     float half = 0.5;
     return (int)(val + half * sign);
+}
+
+typedef struct Arena {
+    byte *buffer;
+    S64 buffer_len;
+    S64 offset;
+} Arena;
+
+Arena arena_create(byte *backing_buffer, S64 backing_buffer_size) {
+    return (Arena){backing_buffer, backing_buffer_size, 0};
+}
+
+void *arena_alloc_align(Arena *arena, S64 len, Byte alignment) {
+    intptr_t misaligned_addr = (intptr_t)arena->buffer + arena->offset;
+    intptr_t aligned_addr = (misaligned_addr + (alignment - 1)) & ~(alignment - 1);
+    assert(aligned_addr + len <= (intptr_t)arena->buffer + arena->buffer_len);
+    arena->offset = (aligned_addr - (intptr_t)arena->buffer) + len;
+    return (byte *)aligned_addr;
+}
+
+void *arena_alloc(Arena *arena, S64 len) {
+    return arena_alloc_align(arena, len, 2*sizeof(void*)); // 16 byte alignment
+}
+
+void arena_free_all(Arena *arena) {
+    arena->offset = 0;
 }

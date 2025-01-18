@@ -414,7 +414,7 @@ void cglm_vec4_scale_this(vec4 v, float s) {
 //
 // float matrix 4 by 4
 void cglm_mat4_fill(float v, mat4 dst) {
-    float *p = (float *)dst;
+    float *p = (float*)dst;
     for(int i = 0; i < 16; ++i) {
         p[i] = v;
     }

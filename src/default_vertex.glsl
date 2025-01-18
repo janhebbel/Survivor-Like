@@ -6,6 +6,8 @@ layout(location = 2) in vec3 in_normal;
 
 layout(location = 0) uniform mat4 mvp;
 
+out vec2 uv;
+
 void main() {
     uv = in_uv;
     gl_Position = mvp * in_position;

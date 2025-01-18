@@ -441,6 +441,8 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
     // OpenGL vertex specification.
     GLuint vertex_array;
     {
+        // F32
+
         glGenVertexArrays(1, &vertex_array);
         glBindVertexArray(vertex_array);
 
@@ -449,6 +451,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
         glGenBuffers(1, &index_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+        // glNamedBufferData(vertex_buffer,
     }
 
     //

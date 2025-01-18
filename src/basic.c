@@ -25,6 +25,9 @@ typedef uint32_t U32;
 typedef uint64_t U64;
 typedef U8 Byte;
 
+typedef float  F32;
+typedef double F64;
+
 #define  S8_MIN  (S8)0x80
 #define S16_MIN (S16)0x8000
 #define S32_MIN (S32)0x80000000
@@ -110,14 +113,6 @@ float string_to_float(char *str, int len) {
     memcpy(null_terminated_str, str, len);
     float f = (float)atof(null_terminated_str);
     return f;
-}
-
-int round_float(float val) {
-    // if val is positive 1 - 0 = +1,
-    // if val is negative 0 - 1 = -1.
-    int   sign = (val > 0) - (val < 0);
-    float half = 0.5;
-    return (int)(val + half * sign);
 }
 
 typedef struct Arena {

@@ -1,25 +1,114 @@
 #include <math.h>
 
-typedef float vec2[2];
-typedef float vec3[3];
-typedef float vec4[4];
+typedef union Vec2F32 Vec2F32;
+typedef union Vec3F32 Vec3F32;
+typedef union Vec4F32 Vec4F32;
 
-typedef int ivec2[2];
-typedef int ivec3[3];
-typedef int ivec4[4];
+union Vec2F32 {
+    struct {
+        F32 x;
+        F32 y;
+    };
+    F32 v[2];
+};
 
-typedef unsigned int uvec2[2];
-typedef unsigned int uvec3[3];
-typedef unsigned int uvec4[4];
+union Vec3F32 {
+    struct {
+        F32 x;
+        F32 y;
+        F32 z;
+    };
+    F32 v[3];
+};
 
-typedef vec3 mat3[3];
-typedef vec4 mat4[4];
+union Vec4F32 {
+    struct {
+        F32 x;
+        F32 y;
+        F32 z;
+        F32 w;
+    };
+    F32 v[4];
+};
+
+typedef union Vec2S32 Vec2S32;
+typedef union Vec3S32 Vec3S32;
+typedef union Vec4S32 Vec4S32;
+
+union Vec2S32 {
+    struct {
+        S32 x;
+        S32 y;
+    };
+    S32 v[2];
+};
+
+union Vec3S32 {
+    struct {
+        S32 x;
+        S32 y;
+        S32 z;
+    };
+    S32 v[3];
+};
+
+union Vec4S32 {
+    struct {
+        S32 x;
+        S32 y;
+        S32 z;
+        S32 w;
+    };
+    S32 v[4];
+};
+
+typedef union Vec2U32 Vec2U32;
+typedef union Vec3U32 Vec3U32;
+typedef union Vec4U32 Vec4U32;
+
+union Vec2U32 {
+    struct {
+        U32 x;
+        U32 y;
+    };
+    U32 v[2];
+};
+
+union Vec3U32 {
+    struct {
+        U32 x;
+        U32 y;
+        U32 z;
+    };
+    U32 v[3];
+};
+
+union Vec4U32 {
+    struct {
+        U32 x;
+        U32 y;
+        U32 z;
+        U32 w;
+    };
+    U32 v[4];
+};
+
+typedef struct Mat3F32 Mat3F32;
+typedef struct Mat4F32 Mat4F32;
+
+struct Mat3F32 {
+    F32 v[3][3];
+};
+
+struct Mat4F32 {
+    F32 v[4][4];
+};
 
 #define PI 3.14159265359f
 #define TABLE_SIZE 257
 #define STEP_SIZE 0.25f * 2 * PI / (TABLE_SIZE - 1)
 
-float table[TABLE_SIZE] = {
+F32 table[TABLE_SIZE] = {
     0.0000000f, 0.0061359f, 0.0122715f, 0.0184067f, 0.0245412f, 0.0306748f,
     0.0368072f, 0.0429383f, 0.0490677f, 0.0551952f, 0.0613207f, 0.0674439f,
     0.0735646f, 0.0796824f, 0.0857973f, 0.0919090f, 0.0980171f, 0.1041216f,
@@ -66,86 +155,112 @@ float table[TABLE_SIZE] = {
 };
 
 //
-// trigonometric functions
-float cglm_sin(float turn);
-float cglm_cos(float turn);
-float cglm_tan(float turn);
-float cglm_cot(float turn);
+// Basic math operations.
+F32 sqrt_f32(F32 value);
+F32 ceil_f32(F32 value);
+F32 floor_f32(F32 value);
+F32 round_f32(F32 val);
 
 //
-// float vector 2
-void cglm_vec2_set(vec2 v1, vec2 v2);
-void cglm_vec2_add(vec2 v1, vec2 v2, vec2 dst);
-void cglm_vec2_sub(vec2 v1, vec2 v2, vec2 dst);
-void cglm_vec2_mul(vec2 v1, vec2 v2, vec2 dst);
-void cglm_vec2_div(vec2 v1, vec2 v2, vec2 dst);
-float cglm_vec2_dot(vec2 v1, vec2 v2);
-float cglm_vec2_len(vec2 v);
-void cglm_vec2_normalize(vec2 v, vec2 dst);
-void cglm_vec2_normalize_this(vec2 v);
-void cglm_vec2_scale(vec2 v, float s, vec2 dst);
-void cglm_vec2_scale_this(vec2 v, float s);
+// Trigonometric functions
+F32 sin_f32(F32 turn);
+F32 cos_f32(F32 turn);
+F32 tan_f32(F32 turn);
+F32 cot_f32(F32 turn);
 
 //
-// float vector 3
-void cglm_vec3_set(vec3 v1, vec3 v2);
-void cglm_vec3_add(vec3 v1, vec3 v2, vec3 dst);
-void cglm_vec3_sub(vec3 v1, vec3 v2, vec3 dst);
-void cglm_vec3_mul(vec3 v1, vec3 v2, vec3 dst);
-void cglm_vec3_div(vec3 v1, vec3 v2, vec3 dst);
-float cglm_vec3_dot(vec3 v1, vec3 v2);
-float cglm_vec3_len(vec3 v);
-void cglm_vec3_normalize(vec3 v, vec3 dst);
-void cglm_vec3_normalize_this(vec3 v);
-void cglm_vec3_cross(vec3 v1, vec3 v2, vec3 dst);
-void cglm_vec3_scale(vec3 v, float s, vec3 dst);
-void cglm_vec3_scale_this(vec3 v, float s);
+// Vec2F32 operations
+Vec2F32 add_2f32(Vec2F32 v1, Vec2F32 v2);
+Vec2F32 sub_2f32(Vec2F32 v1, Vec2F32 v2);
+Vec2F32 mul_2f32(Vec2F32 v1, Vec2F32 v2);
+Vec2F32 div_2f32(Vec2F32 v1, Vec2F32 v2);
+F32 dot_2f32(Vec2F32 v1, Vec2F32 v2);
+F32 len_2f32(Vec2F32 v);
+Vec2F32 normalize_2f32(Vec2F32 v);
+void normalize_this_2f32(Vec2F32 *v);
+Vec2F32 scale_2f32(Vec2F32 v, F32 s);
+void scale_this_2f32(Vec2F32 *v, F32 s);
 
 //
-// float vector 4
-void cglm_vec4_set(vec4 v1, vec4 v2);
-void cglm_vec4_add(vec4 v1, vec4 v2, vec4 dst);
-void cglm_vec4_sub(vec4 v1, vec4 v2, vec4 dst);
-void cglm_vec4_mul(vec4 v1, vec4 v2, vec4 dst);
-void cglm_vec4_div(vec4 v1, vec4 v2, vec4 dst);
-float cglm_vec4_dot(vec4 v1, vec4 v2);
-float cglm_vec4_len(vec4 v);
-void cglm_vec4_normalize(vec4 v, vec4 dst);
-void cglm_vec4_normalize_this(vec4 v);
-void cglm_vec4_scale(vec4 v, float s, vec4 dst);
-void cglm_vec4_scale_this(vec4 v, float s);
+// Vec3F32 operations.
+Vec3F32 add_3f32(Vec3F32 v1, Vec3F32 v2);
+Vec3F32 sub_3f32(Vec3F32 v1, Vec3F32 v2);
+Vec3F32 mul_3f32(Vec3F32 v1, Vec3F32 v2);
+Vec3F32 div_3f32(Vec3F32 v1, Vec3F32 v2);
+F32 dot_3f32(Vec3F32 v1, Vec3F32 v2);
+F32 len_3f32(Vec3F32 v);
+Vec3F32 normalize_3f32(Vec3F32 v);
+void normalize_this_3f32(Vec3F32 *v);
+Vec3F32 cross_3f32(Vec3F32 v1, Vec3F32 v2);
+Vec3F32 scale_3f32(Vec3F32 v, F32 s);
+void scale_this_3f32(Vec3F32 *v, F32 s);
 
 //
-// float matrix 4 by 4
-void cglm_mat4_fill(float v, mat4 dst);
-void cglm_mat4_identity(mat4 m);
-void cglm_mat4_transpose(mat4 m, mat4 dst);
-void cglm_mat4_transpose_this(mat4 m);
-void cglm_mat4_add(mat4 m1, mat4 m2, mat4 dst);
-void cglm_mat4_sub(mat4 m1, mat4 m2, mat4 dst);
-void cglm_mat4_mul(mat4 m1, mat4 m2, mat4 dst);
-void cglm_mat4_mul3(mat4 m1, mat4 m2, mat4 m3, mat4 dst);
+// Vec4F32 operations.
+Vec4F32 add_4f32(Vec4F32 v1, Vec4F32 v2);
+Vec4F32 sub_4f32(Vec4F32 v1, Vec4F32 v2);
+Vec4F32 mul_4f32(Vec4F32 v1, Vec4F32 v2);
+Vec4F32 div_4f32(Vec4F32 v1, Vec4F32 v2);
+F32 dot_4f32(Vec4F32 v1, Vec4F32 v2);
+F32 len_4f32(Vec4F32 v);
+Vec4F32 normalize_4f32(Vec4F32 v);
+void normalize_this_4f32(Vec4F32 *v);
+Vec4F32 cross_4f32(Vec4F32 v1, Vec4F32 v2);
+Vec4F32 scale_4f32(Vec4F32 v, F32 s);
+void scale_this_4f32(Vec4F32 *v, F32 s);
 
 //
-// float matrix vector operations
-void cglm_mat4_vec4_mul(mat4 m, vec4 v, vec4 dst);
+// F32 matrix 4 by 4 operations.
+Mat4F32 identity_mat4f32(F32 value);
+Mat4F32 transpose_mat4f32(Mat4F32 m);
+void transpose_this_mat4f32(Mat4F32 *m);
+Mat4F32 add_mat4f32(Mat4F32 m1, Mat4F32 m2);
+Mat4F32 sub_mat4f32(Mat4F32 m1, Mat4F32 m2);
+Mat4F32 mul_mat4f32(Mat4F32 m1, Mat4F32 m2);
+Mat4F32 mul3_mat4f32(Mat4F32 m1, Mat4F32 m2, Mat4F32 m3);
+
+//
+// F32 matrix vector operations
+Vec4F32 mul_mat4f32_vec4f32(Mat4F32 m, Vec4F32 v);
 
 //
 // transformations
-void cglm_look_at(vec3 position, vec3 target, vec3 fake_up, mat4 dst);
-void cglm_orthographic(float left, float right, float bottom, float top, float znear, float zfar, mat4 dst);
-void cglm_perspective(float fov, float aspect, float znear, float zfar, mat4 dst);
-void cglm_perspective2(float fov, float aspect, float znear, float zfar, mat4 dst);
+Mat4F32 look_at(Vec3F32 position, Vec3F32 target, Vec3F32 fake_up);
+Mat4F32 orthographic(F32 left, F32 right, F32 bottom, F32 top, F32 znear, F32 zfar);
+Mat4F32 perspective(F32 fov, F32 aspect, F32 znear, F32 zfar);
+Mat4F32 perspective2(F32 fov, F32 aspect, F32 znear, F32 zfar);
+
+// Basic math operations.
+F32 sqrt_f32(F32 value) {
+    return sqrtf(value);
+}
+
+F32 ceil_f32(F32 value) {
+    int truncated = (int)value;
+    return (F32)(truncated + (value > truncated));
+}
+
+F32 floor_f32(F32 value) {
+    int truncated = (int)value;
+    return (F32)(truncated - (value < truncated));
+}
+
+F32 round_f32(F32 val) {
+    // if val is positive 1 - 0 = +1,
+    // if val is negative 0 - 1 = -1.
+    F32 half = 0.5;
+    return (F32)(int)(val + half * Sign(val));
+}
 
 //
 // trigonometric functions
-float cglm_sin(float turn) {
-    float normalized_turn = turn - floorf(turn); /* keep turn in range 0..1 */
+F32 sin_f32(F32 turn) {
+    F32 normalized_turn = turn - floor_f32(turn); /* keep turn in range 0..1 */
 
     int mirror = 0;
     int flip = 1;
 
-    float index;
+    F32 index;
     if (normalized_turn >= 0.0f && normalized_turn < 0.25f) {
         index = normalized_turn * 4.0f * (TABLE_SIZE - 1);
     }
@@ -168,19 +283,19 @@ float cglm_sin(float turn) {
     int index0 = (int)index;
     int index1 = index0 + 1;
 
-    float lerp = table[index0] + (((table[index1] - table[index0]) / STEP_SIZE) *
+    F32 lerp = table[index0] + (((table[index1] - table[index0]) / STEP_SIZE) *
                                   ((index - index0) * STEP_SIZE));
 
     return flip * lerp;
 }
 
-float cglm_cos(float turn) {
-    float normalized_turn = turn - floorf(turn); /* keep turn in range 0..1 */
+F32 cos_f32(F32 turn) {
+    F32 normalized_turn = turn - floor_f32(turn); /* keep turn in range 0..1 */
 
     int mirror = 0;
     int flip = 0;
 
-    float index;
+    F32 index;
     if (normalized_turn >= 0.0f && normalized_turn < 0.25f) {
         index = normalized_turn * 4.0f * (TABLE_SIZE - 1);
         mirror = 1;
@@ -203,7 +318,7 @@ float cglm_cos(float turn) {
     int index0 = (int)index;
     int index1 = index0 + 1;
 
-    float lerp = table[index0] + (((table[index1] - table[index0]) / STEP_SIZE) *
+    F32 lerp = table[index0] + (((table[index1] - table[index0]) / STEP_SIZE) *
                                   ((index - index0) * STEP_SIZE));
 
     if (flip) {
@@ -214,349 +329,316 @@ float cglm_cos(float turn) {
     }
 }
 
-float cglm_tan(float turn) {
-    return cglm_sin(turn) / cglm_cos(turn);
+F32 tan_f32(F32 turn) {
+    return sin_f32(turn) / cos_f32(turn);
 }
 
-float cglm_cot(float turn) {
-    return cglm_cos(turn) / cglm_sin(turn);
-}
-
-//
-// float vector 2
-void cglm_vec2_set(vec2 v1, vec2 v2) {
-    v1[0] = v2[0];
-    v1[1] = v2[1];
-}
-
-void cglm_vec2_add(vec2 v1, vec2 v2, vec2 dst) {
-    dst[0] = v1[0] + v2[0];
-    dst[1] = v1[1] + v2[1];
-}
-
-void cglm_vec2_sub(vec2 v1, vec2 v2, vec2 dst) {
-    dst[0] = v1[0] - v2[0];
-    dst[1] = v1[1] - v2[1];
-}
-
-void cglm_vec2_mul(vec2 v1, vec2 v2, vec2 dst) {
-    dst[0] = v1[0] * v2[0];
-    dst[1] = v1[1] * v2[1];
-}
-
-void cglm_vec2_div(vec2 v1, vec2 v2, vec2 dst) {
-    dst[0] = v1[0] / v2[0];
-    dst[1] = v1[1] / v2[1];
-}
-
-float cglm_vec2_dot(vec2 v1, vec2 v2) {
-    return v1[0] * v2[0] + v1[1] * v2[1];
-}
-
-float cglm_vec2_len(vec2 v) {
-    return sqrtf(cglm_vec2_dot(v, v));
-}
-
-void cglm_vec2_normalize(vec2 v, vec2 dst) {
-    float len = cglm_vec2_len(v);
-    dst[0] = v[0] / len;
-    dst[1] = v[1] / len;
-    dst[2] = v[2] / len;
-}
-
-void cglm_vec2_normalize_this(vec2 v) {
-    cglm_vec2_normalize(v, v);
-}
-
-void cglm_vec2_scale(vec2 v, float s, vec2 dst) {
-    dst[0] = v[0] * s;
-    dst[1] = v[1] * s;
-}
-
-void  cglm_vec2_scale_this(vec2 v, float s) {
-    cglm_vec2_scale(v, s, v);
+F32 cot_f32(F32 turn) {
+    return cos_f32(turn) / sin_f32(turn);
 }
 
 //
-// float vector 3
-void cglm_vec3_set(vec3 v1, vec3 v2) {
-    v1[0] = v2[0];
-    v1[1] = v2[1];
-    v1[2] = v2[2];
+// F32 vector 2
+Vec2F32 add_2f32(Vec2F32 v1, Vec2F32 v2) {
+    return (Vec2F32){v1.x + v2.x, v1.y + v2.y};
 }
 
-void cglm_vec3_add(vec3 v1, vec3 v2, vec3 dst) {
-    dst[0] = v1[0] + v2[0];
-    dst[1] = v1[1] + v2[1];
-    dst[2] = v1[2] + v2[2];
+Vec2F32 sub_2f32(Vec2F32 v1, Vec2F32 v2) {
+    return (Vec2F32){v1.x - v2.x, v1.y - v2.y};
 }
 
-void cglm_vec3_sub(vec3 v1, vec3 v2, vec3 dst) {
-    dst[0] = v1[0] - v2[0];
-    dst[1] = v1[1] - v2[1];
-    dst[2] = v1[2] - v2[2];
+Vec2F32 mul_2f32(Vec2F32 v1, Vec2F32 v2) {
+    return (Vec2F32){v1.x * v2.x, v1.y * v2.y};
 }
 
-void cglm_vec3_mul(vec3 v1, vec3 v2, vec3 dst) {
-    dst[0] = v1[0] * v2[0];
-    dst[1] = v1[1] * v2[1];
-    dst[2] = v1[2] * v2[2];
+Vec2F32 div_2f32(Vec2F32 v1, Vec2F32 v2) {
+    return (Vec2F32){v1.x / v2.x, v1.y / v2.y};
 }
 
-void cglm_vec3_div(vec3 v1, vec3 v2, vec3 dst) {
-    dst[0] = v1[0] / v2[0];
-    dst[1] = v1[1] / v2[1];
-    dst[2] = v1[2] / v2[2];
+F32 dot_2f32(Vec2F32 v1, Vec2F32 v2) {
+    return v1.x * v2.x + v1.y * v2.y;
 }
 
-float cglm_vec3_dot(vec3 v1, vec3 v2) {
-    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+F32 len_2f32(Vec2F32 v) {
+    return sqrt_f32(dot_2f32(v, v));
 }
 
-float cglm_vec3_len(vec3 v) {
-    return sqrtf(cglm_vec3_dot(v, v));
+Vec2F32 normalize_2f32(Vec2F32 v) {
+    F32 len = len_2f32(v);
+    return (Vec2F32){v.x / len, v.y / len};
 }
 
-void cglm_vec3_normalize(vec3 v, vec3 dst) {
-    float len = cglm_vec3_len(v);
-    dst[0] = v[0] / len;
-    dst[1] = v[1] / len;
-    dst[2] = v[2] / len;
+void normalize_this_2f32(Vec2F32 *v) {
+    F32 len = len_2f32(*v);
+    v->x /= len;
+    v->y /= len;
 }
 
-void cglm_vec3_normalize_this(vec3 v) {
-    cglm_vec3_normalize(v, v);
+Vec2F32 scale_2f32(Vec2F32 v, F32 s) {
+    return (Vec2F32){v.x * s, v.y * s};
 }
 
-void cglm_vec3_cross(vec3 v1, vec3 v2, vec3 dst) {
-    dst[0] = v1[1] * v2[2] - v1[2] * v2[1];
-    dst[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    dst[2] = v1[0] * v2[1] - v1[1] * v2[0];
-}
-
-void cglm_vec3_scale(vec3 v, float s, vec3 dst) {
-    dst[0] = v[0] * s;
-    dst[1] = v[1] * s;
-    dst[2] = v[2] * s;
-}
-
-void cglm_vec3_scale_this(vec3 v, float s) {
-    cglm_vec3_scale(v, s, v);
+void vec2_scale_this(Vec2F32 *v, F32 s) {
+    v->x *= s;
+    v->y *= s;
 }
 
 //
-// float vector 4
-void cglm_vec4_set(vec4 v1, vec4 v2) {
-    v1[0] = v2[0];
-    v1[1] = v2[1];
-    v1[2] = v2[2];
-    v1[3] = v2[3];
+// F32 vector 3
+Vec3F32 add_3f32(Vec3F32 v1, Vec3F32 v2) {
+    return (Vec3F32){v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
 }
 
-void cglm_vec4_add(vec4 v1, vec4 v2, vec4 dst) {
-    dst[0] = v1[0] + v2[0];
-    dst[1] = v1[1] + v2[1];
-    dst[2] = v1[2] + v2[2];
-    dst[3] = v1[3] + v2[3];
+Vec3F32 sub_3f32(Vec3F32 v1, Vec3F32 v2) {
+    return (Vec3F32){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
 }
 
-void cglm_vec4_sub(vec4 v1, vec4 v2, vec4 dst) {
-    dst[0] = v1[0] - v2[0];
-    dst[1] = v1[1] - v2[1];
-    dst[2] = v1[2] - v2[2];
-    dst[3] = v1[3] - v2[3];
+Vec3F32 mul_3f32(Vec3F32 v1, Vec3F32 v2) {
+    return (Vec3F32){v1.x * v2.x, v1.y * v2.y, v1.z * v2.z};
 }
 
-void cglm_vec4_mul(vec4 v1, vec4 v2, vec4 dst) {
-    dst[0] = v1[0] * v2[0];
-    dst[1] = v1[1] * v2[1];
-    dst[2] = v1[2] * v2[2];
-    dst[3] = v1[3] * v2[3];
+Vec3F32 div_3f32(Vec3F32 v1, Vec3F32 v2) {
+    return (Vec3F32){v1.x / v2.x, v1.y / v2.y, v1.z / v2.z};
 }
 
-void cglm_vec4_div(vec4 v1, vec4 v2, vec4 dst) {
-    dst[0] = v1[0] / v2[0];
-    dst[1] = v1[1] / v2[1];
-    dst[2] = v1[2] / v2[2];
-    dst[3] = v1[3] / v2[3];
+F32 dot_3f32(Vec3F32 v1, Vec3F32 v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-float cglm_vec4_dot(vec4 v1, vec4 v2) {
-    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2] + v1[3] * v2[3];
+F32 len_3f32(Vec3F32 v) {
+    return sqrt_f32(dot_3f32(v, v));
 }
 
-float cglm_vec4_len(vec4 v) {
-    return sqrtf(cglm_vec4_dot(v, v));
+Vec3F32 normalize_3f32(Vec3F32 v) {
+    F32 len = len_3f32(v);
+    return (Vec3F32){v.x / len, v.y / len, v.z / len};
 }
 
-void cglm_vec4_normalize(vec4 v, vec4 dst) {
-    float len = cglm_vec4_len(v);
-    dst[0] = v[0] / len;
-    dst[1] = v[1] / len;
-    dst[2] = v[2] / len;
+void normalize_this_3f32(Vec3F32 *v) {
+    F32 len = len_3f32(*v);
+    v->x /= len;
+    v->y /= len;
+    v->z /= len;
 }
 
-void cglm_vec4_normalize_this(vec4 v) {
-    cglm_vec4_normalize(v, v);
+Vec3F32 cross_3f32(Vec3F32 v1, Vec3F32 v2) {
+    return (Vec3F32){
+        v1.y * v2.z - v1.z * v2.y,
+        v1.z * v2.x - v1.x * v2.z,
+        v1.x * v2.y - v1.y * v2.x,
+    };
 }
 
-void cglm_vec4_scale(vec4 v, float s, vec4 dst) {
-    dst[0] = v[0] * s;
-    dst[1] = v[1] * s;
-    dst[2] = v[2] * s;
-    dst[3] = v[3] * s;
+Vec3F32 scale_3f32(Vec3F32 v, F32 s) {
+    return (Vec3F32){v.x * s, v.y * s, v.z * s};
 }
 
-void cglm_vec4_scale_this(vec4 v, float s) {
-    cglm_vec4_scale(v, s, v);
+void scale_this_3f32(Vec3F32 *v, F32 s) {
+    v->x *= s;
+    v->y *= s;
+    v->z *= s;
 }
 
 //
-// float matrix 4 by 4
-void cglm_mat4_fill(float v, mat4 dst) {
-    float *p = (float*)dst;
-    for(int i = 0; i < 16; ++i) {
-        p[i] = v;
+// F32 vector 4
+Vec4F32 add_4f32(Vec4F32 v1, Vec4F32 v2) {
+    return (Vec4F32){v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w};
+}
+
+Vec4F32 sub_4f32(Vec4F32 v1, Vec4F32 v2) {
+    return (Vec4F32){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w};
+}
+
+Vec4F32 mul_4f32(Vec4F32 v1, Vec4F32 v2) {
+    return (Vec4F32){v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w};
+}
+
+Vec4F32 div_4f32(Vec4F32 v1, Vec4F32 v2) {
+    return (Vec4F32){v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w};
+}
+
+F32 dot_4f32(Vec4F32 v1, Vec4F32 v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
+}
+
+F32 len_4f32(Vec4F32 v) {
+    return sqrt_f32(dot_4f32(v, v));
+}
+
+Vec4F32 normalize_4f32(Vec4F32 v) {
+    F32 len = len_4f32(v);
+    return (Vec4F32){v.x / len, v.y / len, v.z / len, v.w / len};
+}
+
+void normalize_this_4f32(Vec4F32 *v) {
+    F32 len = len_4f32(*v);
+    v->x /= len;
+    v->y /= len;
+    v->z /= len;
+    v->w /= len;
+}
+
+Vec4F32 scale_4f32(Vec4F32 v, F32 s) {
+    return (Vec4F32){v.x * s, v.y * s, v.z * s, v.w * s};
+}
+
+void scale_this_4f32(Vec4F32 *v, F32 s) {
+    v->x *= s;
+    v->y *= s;
+    v->z *= s;
+    v->w *= s;
+}
+
+//
+// F32 matrix 4 by 4
+Mat4F32 identity_mat4f32(F32 value) {
+    Mat4F32 m;
+    m.v[0][0] = value, m.v[0][1] = 0.0f,  m.v[0][2] = 0.0f,  m.v[0][3] = 0.0f;
+    m.v[1][0] = 0.0f,  m.v[1][1] = value, m.v[1][2] = 0.0f,  m.v[1][3] = 0.0f;
+    m.v[2][0] = 0.0f,  m.v[2][1] = 0.0f,  m.v[2][2] = value, m.v[2][3] = 0.0f;
+    m.v[3][0] = 0.0f,  m.v[3][1] = 0.0f,  m.v[3][2] = 0.0f,  m.v[3][3] = value;
+    return m;
+}
+
+Mat4F32 transpose_mat4f32(Mat4F32 m_in) {
+    Mat4F32 m_out;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            m_out.v[j][i] = m_in.v[i][j];
+        }
     }
+    return m_out;
 }
 
-void cglm_mat4_identity(mat4 m) {
-    m[0][0] = 1.0f, m[0][1] = 0.0f, m[0][2] = 0.0f, m[0][3] = 0.0f;
-    m[1][0] = 0.0f, m[1][1] = 1.0f, m[1][2] = 0.0f, m[1][3] = 0.0f;
-    m[2][0] = 0.0f, m[2][1] = 0.0f, m[2][2] = 1.0f, m[2][3] = 0.0f;
-    m[3][0] = 0.0f, m[3][1] = 0.0f, m[3][2] = 0.0f, m[3][3] = 1.0f;
-}
-
-void cglm_mat4_transpose(mat4 m, mat4 dst) {
-    for(int i = 0; i < 4; ++i) {
-        for(int j = 0; j < 4; ++j) {
-            dst[j][i] = m[i][j];
+void transpose_this_mat4f32(Mat4F32 *m) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = i + 1; j < 4; ++j) {
+            F32 f = m->v[i][j];
+            m->v[i][j] = m->v[j][i];
+            m->v[j][i] = f;
         }
     }
 }
 
-void cglm_mat4_transpose_this(mat4 m) {
-    for(int i = 0; i < 4; ++i) {
-        for(int j = i + 1; j < 4; ++j) {
-            float f = m[i][j];
-            m[i][j] = m[j][i];
-            m[j][i] = f;
+Mat4F32 add_mat4f32(Mat4F32 m1, Mat4F32 m2) {
+    Mat4F32 out;
+    for (int row = 0; row < 4; ++row) {
+        for (int column = 0; column < 4; ++column) {
+            out.v[row][column] = m1.v[row][column] + m2.v[row][column];
         }
     }
-}
-
-void cglm_mat4_add(mat4 m1, mat4 m2, mat4 dst) {
-    // TODO: what is faster?
-    /*
-       dst = (mat4)
-       {
-       {m1[0][0] + m2[0][0], m1[0][1] + m2[0][1], m1[0][2] + m2[0][2], m1[0][3] + m2[0][3]},
-       {m1[1][0] + m2[1][0], m1[1][1] + m2[1][1], m1[1][2] + m2[1][2], m1[1][3] + m2[1][3]},
-       {m1[2][0] + m2[2][0], m1[2][1] + m2[2][1], m1[2][2] + m2[2][2], m1[2][3] + m2[2][3]},
-       {m1[3][0] + m2[3][0], m1[3][1] + m2[3][1], m1[3][2] + m2[3][2], m1[3][3] + m2[3][3]}
-       };
-       */
-    for(int row = 0; row < 4; ++row) {
-        for(int column = 0; column < 4; ++column) {
-            dst[row][column] = m1[row][column] + m2[row][column];
-        }
-    }
+    return out;
 }
 
 
-void cglm_mat4_sub(mat4 m1, mat4 m2, mat4 dst) {
-    for(int row = 0; row < 4; ++row) {
-        for(int column = 0; column < 4; ++column) {
-            dst[row][column] = m1[row][column] - m2[row][column];
+Mat4F32 sub_mat4f32(Mat4F32 m1, Mat4F32 m2) {
+    Mat4F32 out;
+    for (int row = 0; row < 4; ++row) {
+        for (int column = 0; column < 4; ++column) {
+            out.v[row][column] = m1.v[row][column] - m2.v[row][column];
         }
     }
+    return out;
 }
 
-void  cglm_mat4_mul(mat4 m1, mat4 m2, mat4 dst) {
+Mat4F32 mul_mat4f32(Mat4F32 m1, Mat4F32 m2) {
+    Mat4F32 out;
     for (int i = 0; i < 4; ++i) { /* row of m1 */
         for (int j = 0; j < 4; ++j) { /* column of m2 */
-            dst[j][i] = 0.0f;
+            out.v[j][i] = 0.0f;
             for (int k = 0; k < 4; ++k) {
-                dst[j][i] += m1[k][i] * m2[j][k];
+                out.v[j][i] += m1.v[k][i] * m2.v[j][k];
             }
         }
     }
+    return out;
 }
 
-void cglm_mat4_mul3(mat4 m1, mat4 m2, mat4 m3, mat4 dst) {
-    mat4 tmp;
-    cglm_mat4_mul(m3, m2, tmp);
-    cglm_mat4_mul(tmp, m1, dst);
+Mat4F32 mul3_mat4f32(Mat4F32 m1, Mat4F32 m2, Mat4F32 m3) {
+    Mat4F32 out, tmp;
+    tmp = mul_mat4f32(m3, m2);
+    out = mul_mat4f32(tmp, m1);
+    return out;
 }
 
 //
-// float matrix vector operations
-void cglm_mat4_vec4_mul(mat4 m, vec4 v, vec4 dst) {
+// F32 matrix vector operations
+Vec4F32 mul_mat4f32_vec4f32(Mat4F32 m, Vec4F32 v) {
+    Vec4F32 out;
     for (int i = 0; i < 4; ++i) { // row of m
-        dst[i] = 0.0f;
+        out.v[i] = 0.0f;
         for (int k = 0; k < 4; ++k) {
-            dst[i] += m[k][i] * v[k];
+            out.v[i] += m.v[k][i] * v.v[k];
         }
     }
+    return out;
 }
 
 //
 // transformations
-void cglm_look_at(vec3 position, vec3 target, vec3 fake_up, mat4 dst) {
-    vec3 backward, right, up;
+Mat4F32 look_at(Vec3F32 position, Vec3F32 target, Vec3F32 fake_up) {
+    Vec3F32 backward, right, up;
 
-    cglm_vec3_sub(position, target, backward);
-    cglm_vec3_cross(fake_up, backward, right);
-    cglm_vec3_cross(backward, right, up);
+    backward = sub_3f32(position, target);
+    right = cross_3f32(fake_up, backward);
+    up = cross_3f32(backward, right);
 
-    cglm_vec3_normalize_this(backward);
-    cglm_vec3_normalize_this(right);
-    cglm_vec3_normalize_this(up);
+    normalize_this_3f32(&backward);
+    normalize_this_3f32(&right);
+    normalize_this_3f32(&up);
 
-    float cos1, cos2, cos3;
+    F32 cos1, cos2, cos3;
 
-    cos1 = cglm_vec3_dot(right, position);
-    cos2 = cglm_vec3_dot(up, position);
-    cos3 = cglm_vec3_dot(backward, position);
+    cos1 = dot_3f32(right, position);
+    cos2 = dot_3f32(up, position);
+    cos3 = dot_3f32(backward, position);
 
-    dst[0][0] = right[0], dst[0][1] = up[0], dst[0][2] = backward[0], dst[0][3] = 0.0f;
-    dst[1][0] = right[1], dst[1][1] = up[1], dst[1][2] = backward[1], dst[1][3] = 0.0f;
-    dst[2][0] = right[2], dst[2][1] = up[2], dst[2][2] = backward[2], dst[2][3] = 0.0f;
-    dst[3][0] = -cos1,    dst[3][1] = -cos2, dst[3][2] = -cos3,       dst[3][3] = 1.0f;
+    Mat4F32 out;
+    out.v[0][0] = right.v[0], out.v[0][1] = up.v[0], out.v[0][2] = backward.v[0], out.v[0][3] = 0.0f;
+    out.v[1][0] = right.v[1], out.v[1][1] = up.v[1], out.v[1][2] = backward.v[1], out.v[1][3] = 0.0f;
+    out.v[2][0] = right.v[2], out.v[2][1] = up.v[2], out.v[2][2] = backward.v[2], out.v[2][3] = 0.0f;
+    out.v[3][0] = -cos1,      out.v[3][1] = -cos2,   out.v[3][2] = -cos3,         out.v[3][3] = 1.0f;
+    return out;
 }
 
-void cglm_orthographic(float left, float right, float bottom, float top, float znear, float zfar, mat4 dst) {
-    float width = right - left;
-    float height = top - bottom;
-    float depth = zfar - znear;
+Mat4F32 orthographic(F32 left, F32 right, F32 bottom, F32 top, F32 znear, F32 zfar) {
+    F32 width = right - left;
+    F32 height = top - bottom;
+    F32 depth = zfar - znear;
 
-    float m30 = (right + left) / width;
-    float m31 = (top + bottom) / height;
-    float m32 = (zfar + znear) / depth;
+    F32 m30 = (right + left) / width;
+    F32 m31 = (top + bottom) / height;
+    F32 m32 = (zfar + znear) / depth;
 
-    dst[0][0] = 2.0f / width,  dst[0][1] = 0.0f,          dst[0][2] = 0.0f,          dst[0][3] = 0.0f;
-    dst[1][0] = 0.0f,          dst[1][1] = 2.0f / height, dst[1][2] = 0.0f,          dst[1][3] = 0.0f;
-    dst[2][0] = 0.0f,          dst[2][1] = 0.0f,          dst[2][2] = -2.0f / depth, dst[2][3] = 0.0f;
-    dst[3][0] = -m30,          dst[3][1] = -m31,          dst[3][2] = -m32,          dst[3][3] = 1.0f;
+    Mat4F32 out;
+    out.v[0][0] = 2.0f / width,  out.v[0][1] = 0.0f,          out.v[0][2] = 0.0f,          out.v[0][3] = 0.0f;
+    out.v[1][0] = 0.0f,          out.v[1][1] = 2.0f / height, out.v[1][2] = 0.0f,          out.v[1][3] = 0.0f;
+    out.v[2][0] = 0.0f,          out.v[2][1] = 0.0f,          out.v[2][2] = -2.0f / depth, out.v[2][3] = 0.0f;
+    out.v[3][0] = -m30,          out.v[3][1] = -m31,          out.v[3][2] = -m32,          out.v[3][3] = 1.0f;
+    return out;
 }
 
-void cglm_perspective(float fov, float aspect, float znear, float zfar, mat4 dst) {
-    float f = cglm_cot(0.5f * fov);
-    float inv_depth = 1.0f / (znear - zfar);
+Mat4F32 perspective(F32 fov, F32 aspect, F32 znear, F32 zfar) {
+    F32 f = cot_f32(0.5f * fov);
+    F32 inv_depth = 1.0f / (znear - zfar);
 
-    dst[0][0] = f * aspect, dst[0][1] = 0.0f, dst[0][2] = 0.0f,                         dst[0][3] =  0.0f;
-    dst[1][0] = 0.0f,       dst[1][1] = f,    dst[1][2] = 0.0f,                         dst[1][3] =  0.0f;
-    dst[2][0] = 0.0f,       dst[2][1] = 0.0f, dst[2][2] = (zfar + znear) * inv_depth,   dst[2][3] = -1.0f;
-    dst[3][0] = 0.0f,       dst[3][1] = 0.0f, dst[3][2] = 2 * zfar * znear * inv_depth, dst[3][3] =  0.0f;
+    Mat4F32 out;
+    out.v[0][0] = f * aspect, out.v[0][1] = 0.0f, out.v[0][2] = 0.0f,                         out.v[0][3] =  0.0f;
+    out.v[1][0] = 0.0f,       out.v[1][1] = f,    out.v[1][2] = 0.0f,                         out.v[1][3] =  0.0f;
+    out.v[2][0] = 0.0f,       out.v[2][1] = 0.0f, out.v[2][2] = (zfar + znear) * inv_depth,   out.v[2][3] = -1.0f;
+    out.v[3][0] = 0.0f,       out.v[3][1] = 0.0f, out.v[3][2] = 2 * zfar * znear * inv_depth, out.v[3][3] =  0.0f;
+    return out;
 }
 
-void cglm_perspective2(float fov, float aspect, float znear, float zfar, mat4 dst) {
-    float right = znear * cglm_tan(fov * 0.5f);
-    float top = right * aspect;
-    float inv_d = 1.0f / (zfar - znear);
+Mat4F32 perspective2(F32 fov, F32 aspect, F32 znear, F32 zfar) {
+    F32 right = znear * tan_f32(fov * 0.5f);
+    F32 top = right * aspect;
+    F32 inv_d = 1.0f / (zfar - znear);
 
-    dst[0][0] = znear / right, dst[0][1] = 0.0f,        dst[0][2] = 0.0f,                      dst[0][3] =  0.0f;
-    dst[1][0] = 0.0f,          dst[1][1] = znear / top, dst[1][2] = 0.0f,                      dst[1][3] =  0.0f;
-    dst[2][0] = 0.0f,          dst[2][1] = 0.0f,        dst[2][2] = -(zfar + znear) * inv_d,   dst[2][3] = -1.0f;
-    dst[3][0] = 0.0f,          dst[3][1] = 0.0f,        dst[3][2] = -2 * zfar * znear * inv_d, dst[3][3] =  0.0f;
+    Mat4F32 out;
+    out.v[0][0] = znear / right, out.v[0][1] = 0.0f,        out.v[0][2] = 0.0f,                      out.v[0][3] =  0.0f;
+    out.v[1][0] = 0.0f,          out.v[1][1] = znear / top, out.v[1][2] = 0.0f,                      out.v[1][3] =  0.0f;
+    out.v[2][0] = 0.0f,          out.v[2][1] = 0.0f,        out.v[2][2] = -(zfar + znear) * inv_d,   out.v[2][3] = -1.0f;
+    out.v[3][0] = 0.0f,          out.v[3][1] = 0.0f,        out.v[3][2] = -2 * zfar * znear * inv_d, out.v[3][3] =  0.0f;
+    return out;
 }

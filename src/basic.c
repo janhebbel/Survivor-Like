@@ -15,6 +15,8 @@
 
 #define IsEnabled(x) ((x) != 0)
 
+typedef unsigned int uint;
+
 typedef int8_t   S8;
 typedef int16_t  S16;
 typedef int32_t  S32;
@@ -23,6 +25,7 @@ typedef uint8_t  U8;
 typedef uint16_t U16;
 typedef uint32_t U32;
 typedef uint64_t U64;
+
 typedef U8 Byte;
 
 typedef float  F32;
@@ -130,7 +133,7 @@ void *arena_alloc_align(Arena *arena, S64 len, Byte alignment) {
     intptr_t aligned_addr = (misaligned_addr + (alignment - 1)) & ~(alignment - 1);
     assert(aligned_addr + len <= (intptr_t)arena->buffer + arena->buffer_len);
     arena->offset = (aligned_addr - (intptr_t)arena->buffer) + len;
-    return (byte *)aligned_addr;
+    return (byte*)aligned_addr;
 }
 
 void *arena_alloc(Arena *arena, S64 len) {

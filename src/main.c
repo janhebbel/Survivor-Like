@@ -40,6 +40,11 @@ PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLBINDBUFFERPROC glBindBuffer;
+PFNGLNAMEDBUFFERDATAPROC glNamedBufferData;
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+PFNGLUSEPROGRAMPROC glUseProgram;
+PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 
 LARGE_INTEGER frequency = {0};
 
@@ -48,6 +53,13 @@ double get_time_in_seconds(void) {
     QueryPerformanceCounter(&counter);
     return (double)counter.QuadPart / (double)frequency.QuadPart;
 }
+
+typedef struct Vertex Vertex;
+struct Vertex {
+    Vec4F32 position;
+    Vec2F32 uv;
+    Vec3F32 normal;
+};
 
 LRESULT WINAPI window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
     LRESULT result = 0;
@@ -358,6 +370,11 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
         glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
         glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
         glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
+        glNamedBufferData = (PFNGLNAMEDBUFFERDATAPROC)wglGetProcAddress("glNamedBufferData");
+        glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
+        glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArray");
+        glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
+        glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)wglGetProcAddress("glUniformMatrix4fv");
     }
 
     //
@@ -441,7 +458,15 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
     // OpenGL vertex specification.
     GLuint vertex_array;
     {
-        // F32
+        Vertex vertices[] = {
+            {-0.5f, -0.5f, 0.0f, 1.0f}, // bottom left
+            { 0.5f, -0.5f, 0.0f, 1.0f}, // bottom right
+            { 0.5f,  0.5f, 0.0f, 1.0f}, // top    right
+            // { 0.5f,  0.5f, 0.0f, 1.0f}, // top    right
+            {-0.5f,  0.5f, 0.0f, 1.0f}, // top    left
+            // {-0.5f, -0.5f, 0.0f, 1.0f}, // bottom left
+        };
+        uint indices[] = {0, 1, 2, 2, 3, 0};
 
         glGenVertexArrays(1, &vertex_array);
         glBindVertexArray(vertex_array);
@@ -451,7 +476,16 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
         glGenBuffers(1, &index_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-        // glNamedBufferData(vertex_buffer,
+        glNamedBufferData(vertex_buffer, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glNamedBufferData(index_buffer, sizeof(indices), indices, GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+
+        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
     }
 
     //
@@ -505,6 +539,11 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
         {
             glClearColor(0.09f, 0.08f, 0.15f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            Mat4F32 mvp = identity_mat4f32(1.0f);
+            glUseProgram(default_program);
+            glUniformMatrix4fv(0, 1, GL_FALSE, (F32*)mvp.v);
+            glViewport(0, 0, width, height);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             SwapBuffers(dc);
         }
     }

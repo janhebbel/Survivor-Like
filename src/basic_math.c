@@ -556,8 +556,8 @@ Mat4F32 mul_mat4f32(Mat4F32 m1, Mat4F32 m2) {
 
 Mat4F32 mul3_mat4f32(Mat4F32 m1, Mat4F32 m2, Mat4F32 m3) {
     Mat4F32 out, tmp;
-    tmp = mul_mat4f32(m3, m2);
-    out = mul_mat4f32(tmp, m1);
+    tmp = mul_mat4f32(m1, m2);
+    out = mul_mat4f32(tmp, m3);
     return out;
 }
 

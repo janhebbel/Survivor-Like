@@ -61,6 +61,33 @@ struct Vertex {
     Vec3F32 normal;
 };
 
+typedef struct Camera Camera;
+struct Camera {
+    Vec3F32 position;
+    Vec3F32 forward;
+    Vec3F32 up;
+    F32 fov;
+    F32 speed;
+    F32 sensitivity;
+};
+
+typedef struct Window Window;
+struct Window {
+    struct {
+        bool is_down[256];
+        bool alt_down[256];
+        bool was_down[256];
+    };
+};
+
+bool key_is_down(Window *window, U8 key) {
+    return window->is_down[key];
+}
+
+bool key_is_down_initial(Window *window, U8 key) {
+    return window->is_down[key] && !window->was_down[key];
+}
+
 LRESULT WINAPI window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
     LRESULT result = 0;
     switch (message) {
@@ -87,27 +114,7 @@ LRESULT WINAPI window_callback(HWND window, UINT message, WPARAM wparam, LPARAM 
         case WM_KEYUP:
         case WM_SYSKEYDOWN:
         case WM_SYSKEYUP:
-            WORD key_code  = LOWORD(wparam);
-            WORD key_flags = HIWORD(lparam);
-
-            bool was_down = (key_flags & (1 << 30)) != 0;
-            bool down = (key_flags & (1 << 31)) == 0;
-
-            if (down != was_down) {
-                bool alt_down = (key_flags & KF_ALTDOWN) == KF_ALTDOWN;
-
-                if (key_code == VK_F11 && down) {
-                    // toggle_fullscreen(window);
-                }
-
-                if (key_code == VK_F4 && alt_down && down) {
-                    PostMessage(window, WM_CLOSE, 0, 0);
-                }
-
-                // key_event(key_code, down);
-            }
-
-            break;
+            assert(0 && "This should be unreachable.");
 
         default:
             result = DefWindowProc(window, message, wparam, lparam);
@@ -120,6 +127,7 @@ LRESULT WINAPI window_callback(HWND window, UINT message, WPARAM wparam, LPARAM 
 void APIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar*
                                   message, const void* userParam) {
     OutputDebugStringA(message);
+    OutputDebugString(L"\n");
     assert(severity == GL_DEBUG_SEVERITY_LOW || severity == GL_DEBUG_SEVERITY_NOTIFICATION);
 }
 
@@ -348,7 +356,7 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
         // Check for GL extensions here.
         for (int i = 0; i < num_extensions; ++i) {
             char *extension_name = glGetStringi(GL_EXTENSIONS, i);
-            if (0) {}
+            if      (0 == string_compare(extension_name, "...")) { /* ... */ }
             else if (0 == string_compare(extension_name, "...")) { /* ... */ }
         }
 
@@ -490,16 +498,24 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
 
     //
     // Main loop preparation.
-    ShowWindow(window, SW_SHOWNORMAL);
+    Camera camera = {
+        .position = {0.0f, 0.0f, 5.0f},
+        .forward = {0.0f, 0.0f, -1.0f},
+        .up = {0.0f, 1.0f, 0.0f},
+        .fov = 0.18f,
+        .speed = 3.0f,
+        .sensitivity = 0.0003f,
+    };
+
+    Window win = {0};
 
     double time_begin, time_end;
     time_begin = 0.0;
     time_end = 0.0;
 
-    DWORD current_width = 0;
-    DWORD current_height = 0;
-
     bool close = false;
+
+    ShowWindow(window, SW_SHOWNORMAL);
 
     //
     // Main loop.
@@ -509,40 +525,66 @@ int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cmd_line, int sho
         double delta_time = time_end - time_begin;
         delta_time;
 
+        // Update key_was_down every frame.
+        for (int i = 0; i < 256; ++i) {
+            win.was_down[i] = win.is_down[i];
+        }
         // Window Message Loop
         MSG message;
         while (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
-            if (message.message == WM_QUIT) {
-                close = true;
+            switch (message.message) {
+                case WM_QUIT:
+                    close = true;
+                    break;
+
+                case WM_KEYDOWN:
+                case WM_KEYUP:
+                case WM_SYSKEYDOWN:
+                case WM_SYSKEYUP:
+                    U16 key_code     = LOWORD(message.wParam);
+                    U16 key_flags    = HIWORD(message.lParam);
+                    // U16 repeat_count = LOWORD(message.lParam);
+
+                    bool is_up    = (key_flags & KF_UP)      == KF_UP;
+                    bool alt_down = (key_flags & KF_ALTDOWN) == KF_ALTDOWN;
+                    // bool was_down = (key_flags & KF_REPEAT)  == KF_REPEAT;
+
+                    win.is_down[key_code]  = !is_up;
+                    win.alt_down[key_code] = alt_down;
+
+                    if (key_code == VK_F4 && alt_down && !is_up) {
+                        PostMessage(window, WM_CLOSE, 0, 0);
+                    }
+                    break;
+
+                default:
+                    TranslateMessage(&message);
+                    DispatchMessage(&message);
             }
-            TranslateMessage(&message);
-            DispatchMessage(&message);
         }
 
         // Handle Input.
-        // TODO
-
-        // Create/Recreate swap chain on start-up/resize.
-        RECT client_rect;
-        DWORD width, height;
-
-        GetClientRect(window, &client_rect);
-
-        width = client_rect.right;
-        height = client_rect.bottom;
-
-        if (width != current_width || height != current_height) {
-            // TODO
+        if (key_is_down_initial(&win, 'A')) {
+            OutputDebugString(L"A\n");
         }
+
+        // Update window width and height in case of window resize.
+        RECT window_rect;
+        GetClientRect(window, &window_rect);
+        int window_width = (int)window_rect.right;
+        int window_height = (int)window_rect.bottom;
 
         // Render.
         {
+            Mat4F32 model = identity_mat4f32(1.0f);
+            Mat4F32 view = look_at(camera.position, add_3f32(camera.position, camera.forward), camera.up);
+            Mat4F32 proj = perspective(camera.fov, (F32)window_height / window_width, 0.1f, 100.0f);
+            Mat4F32 mvp = mul3_mat4f32(proj, view, model);
             glClearColor(0.09f, 0.08f, 0.15f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            Mat4F32 mvp = identity_mat4f32(1.0f);
             glUseProgram(default_program);
             glUniformMatrix4fv(0, 1, GL_FALSE, (F32*)mvp.v);
-            glViewport(0, 0, width, height);
+            glViewport(0, 0, window_width, window_height);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             SwapBuffers(dc);
         }

@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <memory.h>
 
+// Useful macros
 #define ArrayLen(x) (sizeof(x) / sizeof(*x))
 
 #define Min(x, y) (((x) < (y)) ? (x) : (y))
@@ -15,6 +17,27 @@
 
 #define IsEnabled(x) ((x) != 0)
 
+#define MemoryCopy(ptr, ptr2, len) memcpy(ptr, ptr2, len)
+#define MemorySet(ptr, value, len) memset(ptr, value, len)
+#define MemoryZero(ptr, len) MemorySet(ptr, 0, len)
+
+// Limits
+#define  S8_MIN  (S8)0x80
+#define S16_MIN (S16)0x8000
+#define S32_MIN (S32)0x80000000
+#define S64_MIN (S64)0x8000000000000000LL
+
+#define  S8_MAX  (S8)0x7f
+#define S16_MAX (S16)0x7fff
+#define S32_MAX (S32)0x7fffffff
+#define S64_MAX (S64)0x7fffffffffffffffLL
+
+#define  U8_MAX  (U8)0xff
+#define U16_MAX (U16)0xffff
+#define U32_MAX (U32)0xffffffff
+#define U64_MAX (U64)0xffffffffffffffffULL
+
+// Types
 typedef unsigned int uint;
 
 typedef int8_t   S8;
@@ -31,24 +54,17 @@ typedef U8 Byte;
 typedef float  F32;
 typedef double F64;
 
-#define  S8_MIN  (S8)0x80
-#define S16_MIN (S16)0x8000
-#define S32_MIN (S32)0x80000000
-#define S64_MIN (S64)0x8000000000000000LL
+typedef struct Arena Arena;
+struct Arena {
+    Byte *buffer;
+    S64 buffer_len;
+    S64 offset;
+};
 
-#define  S8_MAX  (S8)0x7f
-#define S16_MAX (S16)0x7fff
-#define S32_MAX (S32)0x7fffffff
-#define S64_MAX (S64)0x7fffffffffffffffLL
+// Globals
+Arena global_scratch_arena;
 
-#define  U8_MAX  (U8)0xff
-#define U16_MAX (U16)0xffff
-#define U32_MAX (U32)0xffffffff
-#define U64_MAX (U64)0xffffffffffffffffULL
-
-#define MemorySet(ptr, value, len) memset(ptr, value, len)
-#define MemoryZero(ptr, len) MemorySet(ptr, 0, len)
-
+// Useful functions
 int is_end_of_line(char c) {
     return (c == '\n') || (c == '\r');
 }
@@ -105,7 +121,7 @@ int string_compare_1l(char *a, char *b, int b_length) {
 int string_to_int(char *str, int len) {
     // the maximum characters a 32-bit integer can have, is 11
     char null_terminated_str[12] = {0};
-    memcpy(null_terminated_str, str, len);
+    MemoryCopy(null_terminated_str, str, len);
     int i = atoi(null_terminated_str);
     return i;
 }
@@ -113,18 +129,12 @@ int string_to_int(char *str, int len) {
 float string_to_float(char *str, int len) {
     // 1 sign character + largest integral part: 39 + 1 decimal point + fractional part: 7 = 48
     char null_terminated_str[49] = {0};
-    memcpy(null_terminated_str, str, len);
+    MemoryCopy(null_terminated_str, str, len);
     float f = (float)atof(null_terminated_str);
     return f;
 }
 
-typedef struct Arena {
-    byte *buffer;
-    S64 buffer_len;
-    S64 offset;
-} Arena;
-
-Arena arena_create(byte *backing_buffer, S64 backing_buffer_size) {
+Arena arena_create(Byte *backing_buffer, S64 backing_buffer_size) {
     return (Arena){backing_buffer, backing_buffer_size, 0};
 }
 
@@ -133,7 +143,7 @@ void *arena_alloc_align(Arena *arena, S64 len, Byte alignment) {
     intptr_t aligned_addr = (misaligned_addr + (alignment - 1)) & ~(alignment - 1);
     assert(aligned_addr + len <= (intptr_t)arena->buffer + arena->buffer_len);
     arena->offset = (aligned_addr - (intptr_t)arena->buffer) + len;
-    return (byte*)aligned_addr;
+    return (Byte*)aligned_addr;
 }
 
 void *arena_alloc(Arena *arena, S64 len) {
@@ -142,4 +152,12 @@ void *arena_alloc(Arena *arena, S64 len) {
 
 void arena_free_all(Arena *arena) {
     arena->offset = 0;
+}
+
+Arena *begin_scratch(void) {
+    return &global_scratch_arena;
+}
+
+void end_scratch(void) {
+    arena_free_all(&global_scratch_arena);
 }

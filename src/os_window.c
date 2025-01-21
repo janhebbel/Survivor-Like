@@ -6,10 +6,6 @@
 #include "GL/glcorearb.h"
 #include "GL/wglext.h"
 
-// Defines
-#define OS_DEFAULT_WINDOW_WIDTH 1280
-#define OS_DEFAULT_WINDOW_HEIGHT 720
-
 // Windows OpenGL Functions
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
 PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
@@ -169,27 +165,17 @@ void os_process_events(OS_Window *window) {
     }
 }
 
-OS_Window *os_create_window(Arena *persistent) {
-    //
-    // Create window class.
-    HINSTANCE instance = (HINSTANCE)GetModuleHandle(NULL);
-    WNDCLASS window_class = {
-        .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-        .lpfnWndProc = os_window_callback,
-        .hInstance = instance,
-        .hCursor = LoadCursor(NULL, IDC_ARROW),
-        .lpszClassName = L"WindowClass",
-    };
-    RegisterClass(&window_class);
-
+bool os_init_opengl(HDC context) {
     //
     // Temporary window creation and wgl extension function loading.
     int pixel_format;
     bool wgl_arb_create_context_supported = false;
     bool wgl_arb_create_context_profile_supported = false;
     {
-        HWND temp_window = CreateWindowEx(0, window_class.lpszClassName, L"Window", 0, CW_USEDEFAULT, CW_USEDEFAULT,
-                                          CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, instance, NULL);
+        // NOTE(jan): L"WindowClass" here is hard-coded and only correct because the other class name is also
+        // hard-coded.
+        HWND temp_window = CreateWindowEx(0, L"WindowClass", NULL, 0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                                          CW_USEDEFAULT, NULL, NULL, GetModuleHandle(NULL), NULL);
 
         // Choosing the pixel format like is makes it likely to receive a hardware accelerated context.
         PIXELFORMATDESCRIPTOR pfd = {
@@ -224,7 +210,7 @@ OS_Window *os_create_window(Arena *persistent) {
         int major_version = string_to_int(version_string, major_string_length);
         if (major_version < 3) {
             os_notification_window(L"Error", L"This OpenGL version is too old and not supported.");
-            return NULL;
+            return false;
         }
 
         bool wgl_pixel_format_supported = false;
@@ -263,12 +249,12 @@ OS_Window *os_create_window(Arena *persistent) {
             }
         } else {
             os_notification_window(L"Error", L"WGL_ARB_extensions_string is not supported. Aborting.");
-            return NULL;
+            return false;
         }
 
         if (!wgl_pixel_format_supported) {
             os_notification_window(L"Error", L"WGL_ARB_pixel_format is not supported. Aborting.");
-            return NULL;
+            return false;
         }
 
         // Load wgl functions here.
@@ -296,7 +282,7 @@ OS_Window *os_create_window(Arena *persistent) {
 
         if (!pixel_format_available || num_formats == 0) {
             os_notification_window(L"Error", L"No fitting pixel format available. Aborting.");
-            return NULL;
+            return false;
         }
 
         wglMakeCurrent(dc, NULL);
@@ -305,25 +291,9 @@ OS_Window *os_create_window(Arena *persistent) {
 
     //
     // Window and OpenGL context creation and set up.
-    OS_Window window = {0};
     {
-        DWORD window_style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN |
-            WS_CLIPSIBLINGS;
-        DWORD window_style_ex = 0;
-
-        RECT window_rect = {0};
-        window_rect.right = OS_DEFAULT_WINDOW_WIDTH;
-        window_rect.bottom = OS_DEFAULT_WINDOW_HEIGHT;
-        AdjustWindowRectEx(&window_rect, window_style, FALSE, window_style_ex);
-
-        window.handle = CreateWindowEx(window_style_ex, window_class.lpszClassName, L"Window", window_style, CW_USEDEFAULT,
-                                        CW_USEDEFAULT, window_rect.right - window_rect.left, window_rect.bottom -
-                                        window_rect.top, NULL, NULL, instance, NULL);
-
-        window.context = GetDC(window.handle);
-
         PIXELFORMATDESCRIPTOR pfd;
-        SetPixelFormat(window.context, pixel_format, &pfd);
+        SetPixelFormat(context, pixel_format, &pfd);
 
         HGLRC rc;
         if (wgl_arb_create_context_supported) {
@@ -343,12 +313,12 @@ OS_Window *os_create_window(Arena *persistent) {
                 attrib_list[attrib_list_insert_index++] = WGL_CONTEXT_PROFILE_MASK_ARB;
                 attrib_list[attrib_list_insert_index++] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
             }
-            rc = wglCreateContextAttribsARB(window.context, NULL, attrib_list);
+            rc = wglCreateContextAttribsARB(context, NULL, attrib_list);
         } else {
-            rc = wglCreateContext(window.context);
+            rc = wglCreateContext(context);
         }
 
-        wglMakeCurrent(window.context, rc);
+        wglMakeCurrent(context, rc);
 
         char *version_string = glGetString(GL_VERSION);
         os_debug_print(L"OpenGL version: %S\n", version_string);
@@ -356,7 +326,7 @@ OS_Window *os_create_window(Arena *persistent) {
         int context_flags;
         glGetIntegerv(GL_CONTEXT_FLAGS, &context_flags);
         if (IsEnabled(DEBUG) && !(context_flags & GL_CONTEXT_FLAG_DEBUG_BIT)) {
-            os_notification_window(L"Warning", 
+            os_notification_window(L"Warning",
                                    L"Debug build is specified but OpenGL context does not have the debug flag set.");
         } else if (!IsEnabled(DEBUG) && context_flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
             os_notification_window(L"Warning",
@@ -411,6 +381,41 @@ OS_Window *os_create_window(Arena *persistent) {
         glDebugMessageCallback(gl_message_callback, NULL);
         glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1,
                              "OpenGL Debug Message Callback is enabled.");
+    }
+
+    return true;
+}
+
+OS_Window *os_create_window(Arena *persistent, wchar_t *title, int width, int height) {
+    //
+    // Create window class.
+    HINSTANCE instance = (HINSTANCE)GetModuleHandle(NULL);
+    WNDCLASS window_class = {
+        .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
+        .lpfnWndProc = os_window_callback,
+        .hInstance = instance,
+        .hCursor = LoadCursor(NULL, IDC_ARROW),
+        .lpszClassName = L"WindowClass",
+    };
+    RegisterClass(&window_class);
+
+    DWORD window_style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+    DWORD window_style_ex = 0;
+
+    RECT window_rect = {0};
+    window_rect.right = width;
+    window_rect.bottom = height;
+    AdjustWindowRectEx(&window_rect, window_style, FALSE, window_style_ex);
+
+    OS_Window window = {0};
+    window.handle = CreateWindowEx(window_style_ex, window_class.lpszClassName, title, window_style, CW_USEDEFAULT,
+                                   CW_USEDEFAULT, window_rect.right - window_rect.left, window_rect.bottom -
+                                   window_rect.top, NULL, NULL, instance, NULL);
+    window.context = GetDC(window.handle);
+
+    if (!os_init_opengl(window.context)) {
+        os_notification_window(L"Error", L"Fatal: Failed to initialize OpenGL rendering backend.");
+        return NULL;
     }
 
     OS_Window *result_window = (OS_Window*)arena_alloc(persistent, sizeof(OS_Window));

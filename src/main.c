@@ -8,9 +8,6 @@
 #include "os_basic.c"
 #include "os_window.c"
 
-#define DEFAULT_WIDTH 1280
-#define DEFAULT_HEIGHT 720
-
 // Types
 typedef struct Vertex Vertex;
 struct Vertex {
@@ -47,7 +44,7 @@ int entry_point(void) {
 
     //
     // Create OS Window.
-    OS_Window *window = os_create_window(&persistent);
+    OS_Window *window = os_create_window(&persistent, L"TESTING", 1280, 720);
     if (window == NULL) {
         os_notification_window(L"Error", L"Failed to create a window.");
         return 1;
@@ -176,6 +173,7 @@ int entry_point(void) {
         double delta_time = time_end - time_begin;
         delta_time;
 
+        // Process window events.
         os_process_events(window);
 
         // Handle Input.

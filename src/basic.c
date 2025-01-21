@@ -138,6 +138,12 @@ Arena arena_create(Byte *backing_buffer, S64 backing_buffer_size) {
     return (Arena){backing_buffer, backing_buffer_size, 0};
 }
 
+// NOTE(jan): There are three growth strategies for the backing buffer of arena:
+// 0. Don't grow at all. Sets an upper limit to possible memory usage.
+// 1. Allocated huge amount of virtual address space and only commit memory as needed
+// 2. Grow it like a dynamic array.
+// 3. Chain new memory blocks at the end of the old one like a linked list. (Linked lists no problem for performance in
+// this context as the linked list is expected to always be pretty small.)
 void *arena_alloc_align(Arena *arena, S64 len, Byte alignment) {
     intptr_t misaligned_addr = (intptr_t)arena->buffer + arena->offset;
     intptr_t aligned_addr = (misaligned_addr + (alignment - 1)) & ~(alignment - 1);
